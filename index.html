@@ -876,13 +876,13 @@ async function loadCards(force) {
   $('doneBox').classList.add('hidden'); $('doneBox').classList.remove('flex');
   $('loadBtn').classList.add('hidden');
   const msg = $('loadingMsg');
-  if (!cfg.token || !cfg.db) {
+  if ((!cfg.token || !cfg.db) && ['127.0.0.1', 'localhost'].includes(location.hostname)) {
     try { await loadLocalCards(msg); }
     catch (e) { msg.textContent = '⚠ ' + e.message; $('loadBtn').classList.remove('hidden'); }
     return;
   }
   if (!cfg.token) {
-    msg.textContent = '⚙設定タブでNotionトークンを入力してください';
+    msg.textContent = '⚙設定タブでNotionトークンを入力してください（住民税法専用DBに接続します）';
     $('loadBtn').classList.remove('hidden');
     return;
   }
