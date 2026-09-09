@@ -3,28 +3,40 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#4f46e5">
+<meta name="theme-color" content="#9a3412">
 <title>住民税法 理論暗記</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config = { darkMode: 'class' };</script>
 <style>
-  :root { --safe-bottom: env(safe-area-inset-bottom, 0px); }
+  :root { --safe-bottom: env(safe-area-inset-bottom, 0px); --jumin-rust: #9a3412; --jumin-gold: #b45309; }
   body { -webkit-tap-highlight-color: transparent; overscroll-behavior: none; touch-action: manipulation; }
   button, label, a { touch-action: manipulation; }
   .blink { animation: blink 1.2s ease-in-out infinite; }
   @keyframes blink { 50% { opacity: 0.35; } }
-  .hole { color: #4f46e5; font-weight: 700; background: rgba(99,102,241,.1); border-radius: 4px; padding: 0 2px; }
-  .dark .hole { color: #a5b4fc; background: rgba(99,102,241,.2); }
+  .hole { color: #c2410c; font-weight: 800; background: rgba(251,146,60,.16); border-radius: 4px; padding: 0 2px; }
+  .dark .hole { color: #fdba74; background: rgba(234,88,12,.24); }
   .hole-wrong { color: #dc2626; font-weight: 700; background: rgba(239,68,68,.12); border-radius: 4px; padding: 0 2px; }
   .dark .hole-wrong { color: #fca5a5; background: rgba(239,68,68,.22); }
   .mask { color: #94a3b8; padding: 0 2px; }
   .mask-wrong { color: #ef4444; font-weight: 700; padding: 0 2px; }
   .clause { background: rgba(250,204,21,.22); border-radius: 4px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
   .dark .clause { background: rgba(250,204,21,.16); }
-  .bodyhead { color: #4f46e5; font-weight: 700; }
-  .dark .bodyhead { color: #a5b4fc; }
-  .subhead { color: #0891b2; font-weight: 600; }
-  .dark .subhead { color: #67e8f9; }
+  /* 住民税法の見出し階層: 〔１〕→⑴→①→イ→㋑ */
+  .jumin-head-0 { display:inline-block; width:100%; margin:.2rem 0 .45rem; padding:.38rem .55rem; border-left:4px solid #c2410c; border-radius:.35rem; color:#7c2d12; background:rgba(255,237,213,.78); font-size:17px; line-height:1.55; font-weight:900; }
+  .dark .jumin-head-0 { color:#fed7aa; background:rgba(124,45,18,.32); border-left-color:#fb923c; }
+  .jumin-head-1 { display:inline-block; width:100%; margin:.75rem 0 .25rem; color:#9a3412; font-size:16px; line-height:1.6; font-weight:800; }
+  .dark .jumin-head-1 { color:#fdba74; }
+  .jumin-head-2 { display:inline-block; width:calc(100% - .35rem); margin:.65rem 0 .2rem .35rem; color:#b45309; font-size:15px; line-height:1.6; font-weight:800; }
+  .dark .jumin-head-2 { color:#fcd34d; }
+  .jumin-cite { display:inline-block; width:calc(100% - .55rem); margin:-.2rem 0 .35rem .55rem; color:#a8a29e; font-size:11px; line-height:1.45; font-weight:600; }
+  .jumin-marker-1 { color:#c2410c; font-weight:900; }
+  .dark .jumin-marker-1 { color:#fdba74; }
+  .jumin-marker-2 { color:#b45309; font-weight:900; }
+  .dark .jumin-marker-2 { color:#fcd34d; }
+  .jumin-marker-3 { color:#be123c; font-weight:900; }
+  .dark .jumin-marker-3 { color:#fda4af; }
+  .jumin-note { color:#78716c; font-size:13px; font-weight:700; }
+  .dark .jumin-note { color:#a8a29e; }
   .answer-reveal { color: #059669; font-weight: 700; }
   .dark .answer-reveal { color: #34d399; }
   .confetti-piece { position: fixed; width: 9px; height: 14px; top: -20px; z-index: 90; pointer-events: none; animation: fall linear forwards; }
@@ -39,15 +51,15 @@
   #qScroll::-webkit-scrollbar-thumb { background: rgba(148,163,184,.4); border-radius: 4px; }
 </style>
 </head>
-<body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100">
+<body class="bg-orange-50 dark:bg-slate-950 text-stone-800 dark:text-slate-100">
 <div class="mx-auto max-w-[520px] min-h-[100dvh] flex flex-col">
 
   <!-- 固定ヘッダー -->
   <header class="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[520px] z-40
-                 bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600 text-white shadow-lg">
+                 bg-gradient-to-r from-orange-800 via-amber-700 to-rose-700 text-white shadow-lg">
     <div class="px-4 pt-2.5 pb-2 flex items-center justify-between">
       <div class="leading-tight">
-        <div class="text-[11px] opacity-80">住民税法 理論暗記 <span id="appVer" class="opacity-60"></span></div>
+        <div class="text-[11px] opacity-90"><span class="mr-1 rounded-full bg-white/20 px-1.5 py-0.5 font-bold">住民税法</span>理論暗記 <span id="appVer" class="opacity-70"></span></div>
         <div class="text-sm font-bold">試験まで <span id="daysLeft">--</span>日
           <span class="ml-2 text-[11px] font-normal opacity-90">🔥<span id="streak">0</span>連続</span>
         </div>
@@ -69,16 +81,16 @@
   <!-- 出題タブ -->
   <main id="view-quiz" class="flex-1 px-3 pb-[150px] pt-2 flex flex-col">
     <div id="loadingBox" class="flex-1 flex flex-col items-center justify-center gap-3 text-slate-500 min-h-[50vh]">
-      <div class="animate-spin w-10 h-10 border-4 border-indigo-400 border-t-transparent rounded-full"></div>
+      <div class="animate-spin w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full"></div>
       <div id="loadingMsg" class="text-sm">読み込み中...</div>
-      <button id="loadBtn" onclick="loadCards(true)" class="hidden px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold pressable">データを読み込む</button>
+      <button id="loadBtn" onclick="loadCards(true)" class="hidden px-5 py-2.5 bg-orange-700 text-white rounded-xl text-sm font-bold pressable">データを読み込む</button>
       <button id="weakStartBtn" onclick="loadWeakness()" class="hidden px-5 py-2.5 bg-gradient-to-r from-rose-500 to-pink-600 text-white rounded-xl text-sm font-bold pressable">🎯 弱点克服モード</button>
     </div>
 
     <div id="quizBox" class="hidden flex-1 flex-col">
       <div id="qCard" class="bg-white dark:bg-slate-900 rounded-2xl shadow-lg ring-1 ring-slate-200 dark:ring-slate-800 p-4 flex-1 flex flex-col">
         <div class="flex items-center gap-1.5 flex-wrap mb-1.5">
-          <span id="qSection" class="text-[11px] font-bold bg-indigo-600 text-white px-2 py-0.5 rounded-full"></span>
+          <span id="qSection" class="text-[11px] font-bold bg-orange-700 text-white px-2 py-0.5 rounded-full"></span>
           <span id="qRank" class="text-[11px] text-amber-500 font-bold"></span>
           <span id="qHole" class="text-[11px] text-slate-400"></span>
           <span id="wrongBadge" class="hidden text-[11px] font-bold bg-rose-500 text-white px-2 py-0.5 rounded-full pop">前回不正解</span>
@@ -95,7 +107,7 @@
         <div id="relLinks" class="hidden mb-2 flex items-center gap-1.5 flex-wrap"></div>
         <div id="repairBanner" class="hidden mb-2 p-2 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-[11px] text-amber-700 dark:text-amber-300 flex items-center gap-2"></div>
         <div id="qScroll" class="overflow-y-auto max-h-[calc(100dvh-330px)]">
-          <div id="qText" class="text-[15px] leading-[1.9] whitespace-pre-wrap"></div>
+          <div id="qText" class="text-[15px] leading-[1.95] whitespace-pre-wrap"></div>
         </div>
       </div>
     </div>
@@ -107,8 +119,8 @@
       <div id="secDoneStats" class="text-sm text-slate-500"></div>
       <div class="flex flex-col gap-3 w-full max-w-[300px]">
         <button id="secReviewWrong" onclick="reviewSectionWrong()" class="px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-2xl font-bold shadow-lg pressable">😤 間違えた箇所だけ復習</button>
-        <button onclick="reviewSectionAll()" class="px-6 py-3 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-2xl font-bold shadow-lg pressable">🔁 この題をすべて復習</button>
-        <button id="continueBtn" onclick="continueNextSection()" class="px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold shadow-lg pressable">➡️ 次の題へ進む</button>
+        <button onclick="reviewSectionAll()" class="px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-700 text-white rounded-2xl font-bold shadow-lg pressable">🔁 この題をすべて復習</button>
+        <button id="continueBtn" onclick="continueNextSection()" class="px-6 py-3 bg-orange-700 text-white rounded-2xl font-bold shadow-lg pressable">➡️ 次の題へ進む</button>
       </div>
     </div>
 
@@ -118,9 +130,9 @@
       <div id="doneStats" class="text-sm text-slate-500"></div>
       <div class="flex flex-col gap-3 w-full max-w-[300px]">
         <button id="reviewWrongBtn" onclick="startWrongReview()" class="hidden px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-2xl font-bold shadow-lg pressable">😤 不正解だけ即時復習</button>
-        <button onclick="reviewAllToday()" class="px-6 py-3 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-2xl font-bold shadow-lg pressable">🔁 今日の分を再度復習</button>
+        <button onclick="reviewAllToday()" class="px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-700 text-white rounded-2xl font-bold shadow-lg pressable">🔁 今日の分を再度復習</button>
         <button onclick="loadWeakness()" class="px-6 py-3 bg-gradient-to-r from-rose-500 to-pink-600 text-white rounded-2xl font-bold shadow-lg pressable">🎯 弱点克服モード</button>
-        <button onclick="loadCards(true)" class="px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold shadow-lg pressable">🔄 再取得</button>
+        <button onclick="loadCards(true)" class="px-6 py-3 bg-orange-700 text-white rounded-2xl font-bold shadow-lg pressable">🔄 再取得</button>
       </div>
     </div>
   </main>
@@ -141,7 +153,7 @@
       </div>
       <div id="pillarDueInfo" class="text-xs text-slate-400"></div>
       <div class="flex flex-col gap-3 w-full max-w-[300px]">
-        <button onclick="startPillar(false)" class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-2xl font-bold shadow-lg pressable">▶️ 今日の復習を開始</button>
+        <button onclick="startPillar(false)" class="px-6 py-3 bg-gradient-to-r from-orange-700 to-amber-600 text-white rounded-2xl font-bold shadow-lg pressable">▶️ 今日の復習を開始</button>
         <button onclick="startPillar(true)" class="px-6 py-3 bg-slate-200 dark:bg-slate-700 rounded-2xl font-bold pressable">📚 範囲内すべてを練習</button>
       </div>
     </div>
@@ -153,7 +165,7 @@
           <span id="pillarDueBadge" class="text-[11px] font-bold bg-rose-500 text-white px-2 py-0.5 rounded-full"></span>
         </div>
         <div class="text-center mb-3">
-          <div class="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400" id="pillarSecNo"></div>
+          <div class="text-2xl font-extrabold text-orange-700 dark:text-orange-400" id="pillarSecNo"></div>
           <div class="text-base font-bold mt-1" id="pillarTitlePrompt"></div>
           <div class="text-xs text-slate-500 mt-1.5">柱（大見出し）を順番に言って、1つずつめくって確認 ・ 全<span id="pillarCount" class="font-bold"></span>柱</div>
         </div>
@@ -162,7 +174,7 @@
       <div class="mt-3 flex flex-col gap-2 sticky bottom-[76px] z-10">
         <div id="pillarRevealRow" class="grid grid-cols-3 gap-2">
           <button id="pillarRevealAllBtn" onclick="pillarRevealAll()" class="py-3 bg-slate-200 dark:bg-slate-700 rounded-2xl font-bold text-sm pressable">全部表示</button>
-          <button id="pillarReveal" onclick="pillarNextHeading()" class="col-span-2 py-3.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-2xl font-bold text-base shadow-lg pressable">次の柱 ▶</button>
+          <button id="pillarReveal" onclick="pillarNextHeading()" class="col-span-2 py-3.5 bg-gradient-to-r from-orange-700 to-amber-600 text-white rounded-2xl font-bold text-base shadow-lg pressable">次の柱 ▶</button>
         </div>
         <div id="pillarJudge" class="hidden grid grid-cols-2 gap-3">
           <button onclick="pillarJudgeBtn(false)" class="py-3.5 bg-gradient-to-r from-rose-500 to-red-500 text-white rounded-2xl font-bold text-base shadow-lg pressable">✗ 言えなかった</button>
@@ -178,8 +190,8 @@
       <div id="pillarDoneStats" class="text-sm text-slate-500"></div>
       <div class="flex flex-col gap-3 w-full max-w-[300px]">
         <button id="pillarRetryWrong" onclick="pillarRetryWrong()" class="hidden px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-2xl font-bold shadow-lg pressable">😤 間違えた題だけ復習</button>
-        <button onclick="pillarRepeat()" class="px-6 py-3 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-2xl font-bold shadow-lg pressable">🔁 もう一度同じ範囲を復習</button>
-        <button onclick="pillarBackStart()" class="px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold shadow-lg pressable">↩ 戻る</button>
+        <button onclick="pillarRepeat()" class="px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-700 text-white rounded-2xl font-bold shadow-lg pressable">🔁 もう一度同じ範囲を復習</button>
+        <button onclick="pillarBackStart()" class="px-6 py-3 bg-orange-700 text-white rounded-2xl font-bold shadow-lg pressable">↩ 戻る</button>
       </div>
     </div>
   </main>
@@ -194,12 +206,12 @@
       <div class="flex gap-2 mb-3 flex-wrap">
         <button onclick="rangeAll(true)" class="px-3 py-1.5 text-xs bg-slate-200 dark:bg-slate-700 rounded-lg pressable">全選択</button>
         <button onclick="rangeAll(false)" class="px-3 py-1.5 text-xs bg-slate-200 dark:bg-slate-700 rounded-lg pressable">全解除</button>
-        <button onclick="savePreset()" class="px-3 py-1.5 text-xs bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 rounded-lg pressable">＋プリセット保存</button>
+        <button onclick="savePreset()" class="px-3 py-1.5 text-xs bg-orange-100 dark:bg-orange-950 text-orange-800 dark:text-orange-300 rounded-lg pressable">＋プリセット保存</button>
       </div>
       <div id="rankFilter" class="flex gap-1.5 mb-3 flex-wrap items-center"></div>
       <div id="presetList" class="flex gap-2 mb-3 flex-wrap"></div>
       <div id="rangeList" class="text-sm max-h-[55vh] overflow-y-auto"></div>
-      <button onclick="applyRange()" class="mt-4 w-full py-3 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl font-bold shadow pressable">この範囲で出題</button>
+      <button onclick="applyRange()" class="mt-4 w-full py-3 bg-gradient-to-r from-orange-700 to-amber-600 text-white rounded-xl font-bold shadow pressable">この範囲で出題</button>
     </div>
   </main>
 
@@ -213,12 +225,12 @@
       <label class="block">プロキシURL
         <input id="setProxy" type="text" class="mt-1 w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
       </label>
-      <label class="block">データベースID（所得税法・固定）
-        <input id="setDb" type="text" readonly aria-readonly="true" class="mt-1 w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 cursor-not-allowed opacity-70" title="科目間の混同を防ぐため、所得税法のデータベースに固定されています">
+      <label class="block">データベースID（住民税法・固定）
+        <input id="setDb" type="text" readonly aria-readonly="true" class="mt-1 w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 cursor-not-allowed opacity-70" title="科目間の混同を防ぐため、住民税法のデータベースに固定されています">
         <span class="mt-1 block text-[11px] text-slate-400">科目間の混同を防ぐため変更できません</span>
       </label>
       <label class="flex items-center justify-between">終了後に不正解を即時復習
-        <input id="setRetry" type="checkbox" class="w-5 h-5 accent-indigo-600" checked>
+        <input id="setRetry" type="checkbox" class="w-5 h-5 accent-orange-700" checked>
       </label>
       <label class="block">出題順（題の並び）
         <select id="setOrder" class="mt-1 w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
@@ -229,9 +241,9 @@
         </select>
       </label>
       <label class="flex items-center justify-between">ダークモード
-        <input id="setDark" type="checkbox" class="w-5 h-5 accent-indigo-600">
+        <input id="setDark" type="checkbox" class="w-5 h-5 accent-orange-700">
       </label>
-      <button onclick="saveSettings()" class="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold pressable">保存</button>
+      <button onclick="saveSettings()" class="w-full py-3 bg-orange-700 text-white rounded-xl font-bold pressable">保存</button>
       <div id="saveMsg" class="text-center text-emerald-600 text-xs h-4"></div>
       <button onclick="clearCache()" class="w-full py-2 text-xs text-rose-500 underline">キャッシュを削除して全件再取得</button>
     </div>
@@ -246,7 +258,7 @@
       <button id="undoBtn" onclick="undo()" class="text-[11px] px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 pressable mr-3" disabled>↩ 戻る</button>
       <span class="text-[11px] text-slate-400">進捗 <span id="progressText">0/0</span></span>
     </div>
-    <button id="revealBtn" onclick="reveal()" class="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-2xl font-bold text-base shadow-lg pressable">👀 正解を確認する</button>
+    <button id="revealBtn" onclick="reveal()" class="w-full py-3.5 bg-gradient-to-r from-orange-700 to-amber-600 text-white rounded-2xl font-bold text-base shadow-lg pressable">👀 正解を確認する</button>
     <div id="judgeBtns" class="hidden grid grid-cols-2 gap-3">
       <button onclick="judge(false)" class="py-3.5 bg-gradient-to-r from-rose-500 to-red-500 text-white rounded-2xl font-bold text-base shadow-lg pressable">✗ 不正解</button>
       <button onclick="judge(true)" class="py-3.5 bg-gradient-to-r from-emerald-500 to-green-500 text-white rounded-2xl font-bold text-base shadow-lg pressable">✓ 正解</button>
@@ -265,11 +277,11 @@
       </label>
       <div class="grid grid-cols-2 gap-3">
         <button onclick="closeEdit()" class="py-3 bg-slate-200 dark:bg-slate-700 rounded-xl font-bold pressable">キャンセル</button>
-        <button onclick="saveEdit()" id="editSaveBtn" class="py-3 bg-indigo-600 text-white rounded-xl font-bold pressable">保存</button>
+        <button onclick="saveEdit()" id="editSaveBtn" class="py-3 bg-orange-700 text-white rounded-xl font-bold pressable">保存</button>
       </div>
       <div id="editMsg" class="text-center text-xs mt-2 h-4"></div>
       <div class="flex gap-3 mt-2">
-        <button onclick="openHoleSel()" class="flex-1 py-2 text-xs text-indigo-500 underline">✂️ 選択して穴を追加・統合</button>
+        <button onclick="openHoleSel()" class="flex-1 py-2 text-xs text-orange-600 underline">✂️ 選択して穴を追加・統合</button>
         <button onclick="deleteHole()" class="flex-1 py-2 text-xs text-rose-500 underline">🗑 この穴を削除</button>
       </div>
     </div>
@@ -291,7 +303,7 @@
       </label>
       <div class="grid grid-cols-2 gap-3">
         <button onclick="closeAdd()" class="py-3 bg-slate-200 dark:bg-slate-700 rounded-xl font-bold pressable">キャンセル</button>
-        <button onclick="saveAdd()" id="addSaveBtn" class="py-3 bg-indigo-600 text-white rounded-xl font-bold pressable">追加</button>
+        <button onclick="saveAdd()" id="addSaveBtn" class="py-3 bg-orange-700 text-white rounded-xl font-bold pressable">追加</button>
       </div>
       <div id="addMsg" class="text-center text-xs mt-2 h-4"></div>
     </div>
@@ -305,7 +317,7 @@
       <div id="holeSelText" class="p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[15px] leading-[1.9] max-h-[50dvh] overflow-y-auto select-text"></div>
       <div class="grid grid-cols-2 gap-3 mt-3">
         <button onclick="closeHoleSel()" class="py-3 bg-slate-200 dark:bg-slate-700 rounded-xl font-bold pressable">キャンセル</button>
-        <button onclick="applyHoleSelection()" id="holeSelBtn" class="py-3 bg-indigo-600 text-white rounded-xl font-bold pressable">選択を穴にする</button>
+        <button onclick="applyHoleSelection()" id="holeSelBtn" class="py-3 bg-orange-700 text-white rounded-xl font-bold pressable">選択を穴にする</button>
       </div>
       <div id="holeSelMsg" class="text-center text-xs mt-2 h-4"></div>
     </div>
@@ -340,14 +352,61 @@
 
 <script>
 'use strict';
-const APP_VER = 'v1-local';
+const APP_VER = 'v2';
 const EXAM_DATE = new Date('2027-08-03T00:00:00');
+// 見出し・段落の改行は残し、Notion由来の空行だけを整理する。
+function normalizeQuestionLineBreaks(value) {
+  return String(value == null ? '' : value)
+    .replace(/\r\n?/g, '\n')
+    .split('\n')
+    .map(line => line.replace(/[\t 　]+$/g, ''))
+    .filter(line => line.trim() !== '')
+    .join('\n')
+    .trim();
+}
 // 各題の大見出し〔n〕の構成（穴の有無に関わらず存在する見出し番号）
 const SECTION_STRUCT = {"1-1":["1","2","3","4","5"],"1-2":["1","2","3","4"],"1-3":["1","2","3","4","5","6"],"2-1":["1","2","3","4","5","6","7","8"],"2-2":["1","2"],"2-3":["1","2","3","4","5","6"],"2-4":["1","2","3","4","5","6","7","8","9","10"],"2-5":["1","2","3","4","5","6","7"],"2-6":["1","2","3","4","5","6"],"2-7":["1","2","3"],"2-8":["1","2","3"],"2-9":["1","2","3","4","5"],"2-10":["1","2"],"2-11":["1","2"],"2-12":["1","2","3"],"2-13":["1","2","3","4","5"],"2-14":["1","2","3","4","5"],"2-15":["1","2","3","4"],"2-16":["1","2"],"2-17":["1","2"],"2-18":["1","2","3","4"],"2-19":["1","2","3","4"],"2-20":["1","2","3"],"2-21":["1","2","3","4"],"2-22":["1","2","3","4","5","6"],"2-23":["1","2","3"],"2-24":["1","2","3","4","5"],"2-25":["1","2","3","4"],"2-26":["1","2"],"2-27":["1","2","3","4"],"2-28":["1","2"],"3-1":["1","2","3","4","5","6","7","8","9"],"3-2":["1","2","3","4","5","6","7","8"],"3-3":["1","2","3","4","5","6","7","8","9"],"3-4":["1","2","3","4","5"],"3-5":["1","2","3","4","5"],"3-6":["1","2","3","4"],"3-7":["1","2","3","4"],"3-8":["1","2","3","4"],"4-1":["1","2","3","4","5","6","7","8","9"],"4-2":["1","2","3","4","5","6","7","8","9","10"],"4-3":["1","2","3"],"5-1":["1","2","3","4"],"5-2":["1","2","3"],"5-3":["1","2","3","4","5"],"5-4":["1","2","3","4","5","6","7","8"],"5-5":["1","2"],"5-6":["1","2"],"5-7":["1","2"],"6-1":["1","2","3","4","5","6"],"6-2":["1","2","3","4","5","6"],"6-3":["1","2","3","4","5"],"6-4":["1","2"],"6-5":["1","2","3","4"],"6-6":["1","2","3","4"],"6-7":["1","2","3","4","5"],"6-8":["1","2","3","4"],"6-9":["1","2","3","4","5","6","7","8","9","10","11","12","13"],"7-1":["1","2","3","4"],"7-2":["1","2","3","4"],"7-3":["1","2","3","4","5","6","7","8","9"],"7-4":["1","2","3","4","5","6"],"7-5":["1","2","3","4","5","6","7","8"],"7-6":["1","2","3","4","5","6","7"],"8-1":["1","2","3"],"8-2":["1","2","3","4","5","6"],"9-1":["1","2","3","4","5","6"],"9-2":["1","2","3","4","5","6","7"],"9-3":["1","2","3","4","5","6","7"],"9-4":["1","2","3","4","5"],"10-1":["1","2","3","4"],"10-2":["1","2","3","4"]};
 const headNum = c => {
   const m = (c && c.heading || '').match(/〔\s*([0-9０-９]+)\s*〕/);
   return m ? m[1].normalize('NFKC') : '-';
 };
+const JUMIN_KANA = 'イロハニホヘトチリヌルヲワカヨタレソツネナラムウヰノオクヤマケフコエテアサキユメミシヱヒモセス';
+function decorateJuminHeadingLines(value) {
+  const source = normalizeQuestionLineBreaks(value);
+  return source.split('\n').map(line => {
+    const trimmed = line.trim();
+    if (/^〔[0-9０-９]+〕/.test(trimmed)) {
+      return `‹‹JH0››${line}‹‹/JH0››`;
+    }
+    if (/^（[^）]*(?:法|令|通|規|則)[^）]*）[★☆]*$/.test(trimmed)) {
+      return `‹‹JC››${line}‹‹/JC››`;
+    }
+    let match = line.match(/^([\s　]*)([⑴-⒇])([\s　]+)/);
+    if (match) {
+      const compact = trimmed.replace(/〔_〕|〔●\d+〕/g, '〔●〕').length <= 34 && !/[。！？]$/.test(trimmed);
+      if (compact) return `‹‹JH1››${line}‹‹/JH1››`;
+      return line.replace(match[0], `${match[1]}‹‹JM1››${match[2]}‹‹/JM1››${match[3]}`);
+    }
+    match = line.match(/^([\s　]*)([①-⑳])([\s　]+)/);
+    if (match) {
+      return line.replace(match[0], `${match[1]}‹‹JM2››${match[2]}‹‹/JM2››${match[3]}`);
+    }
+    match = line.match(new RegExp(`^([\\s　]*)([${JUMIN_KANA}])([\\s　]+)`));
+    if (match) {
+      const compact = trimmed.replace(/〔_〕|〔●\d+〕/g, '〔●〕').length <= 30 && !/[。！？]$/.test(trimmed);
+      if (compact) return `‹‹JH2››${line}‹‹/JH2››`;
+      return line.replace(match[0], `${match[1]}‹‹JM3››${match[2]}‹‹/JM3››${match[3]}`);
+    }
+    match = line.match(/^([\s　]*)([㋐-㋾])([\s　]*)/);
+    if (match) {
+      return line.replace(match[0], `${match[1]}‹‹JM3››${match[2]}‹‹/JM3››${match[3]}`);
+    }
+    if (/^[（(]注[0-9０-９]*[）)]/.test(trimmed)) {
+      return `‹‹JN››${line}‹‹/JN››`;
+    }
+    return line;
+  }).join('\n');
+}
 // 各題の柱（大見出し）名称。柱想起モードで使用
 const SECTION_HEADINGS = {"1-1":[["1","納税義務者","★★"],["2","課税所得の範囲","★★"],["3","納税義務者の区分が異動した場合の課税所得の範囲","★★"],["4","課税方法"],["5","復興特別所得税","★"]],"1-2":[["1","納税義務者"],["2","課税所得の範囲"],["3","課税方法"],["4","復興特別所得税"]],"1-3":[["1","納税地","★"],["2","納税地の特例","★"],["3","源泉徴収に係る所得税の納税地","★"],["4","納税地の指定","★"],["5","納税地の指定処分の取消しがあった場合","★"],["6","復興特別所得税の納税地","★"]],"2-1":[["1","利子所得に関係するもの"],["2","配当所得に関係するもの"],["3","給与所得に関係するもの"],["4","退職所得に関係するもの"],["5","山林所得に関係するもの"],["6","譲渡所得に関係するもの"],["7","一時所得に関係するもの"],["8","雑所得に関係するもの"]],"2-2":[["1","取得した保険金及び損害賠償金等の取扱い","★★"],["2","支出した損害賠償金等の取扱い","★"]],"2-3":[["1","総合課税","★★"],["2","非課税","★"],["3","公的年金等","★★"],["4","公的年金等以外の年金","★★"],["5","源泉徴収","★★"],["6","確定所得申告を要しない場合","★★"]],"2-4":[["1","利子所得","★★"],["2","配当所得","★★"],["3","不動産所得","★"],["4","事業所得","★"],["5","給与所得","★★"],["6","退職所得","★★"],["7","山林所得","★"],["8","譲渡所得","★"],["9","一時所得","★"],["10","雑所得","★★"]],"2-5":[["1","概要","★★"],["2","給与所得","★★"],["3","非課税","★"],["4","総合課税","★★"],["5","所得金額調整控除","★★"],["6","源泉徴収","★★"],["7","確定所得申告を要しない場合","★★"]],"2-6":[["1","概要","★★"],["2","退職所得","★★"],["3","非課税","★"],["4","申告分離課税","★★"],["5","源泉徴収","★★"],["6","確定所得申告を要しない場合","★★"]],"2-7":[["1","不動産所得となる権利金","★"],["2","譲渡所得となる権利金","★"],["3","事業所得又は雑所得となる権利金","★"]],"2-8":[["1","収入金額の通則","★★"],["2","必要経費の通則","★★"],["3","取得費の通則","★★"]],"2-9":[["1","棚卸資産等に関する別段の定め","★★"],["2","譲渡所得の基因となる資産等に関する別段の定め","★★"],["3","国庫補助金等に関する別段の定め","★"],["4","発行法人から与えられた株式を取得する権利の譲渡による収入金額"],["5","債務免除を受けた場合の経済的利益の総収入金額不算入"]],"2-10":[["1","贈与等をした者の取扱い","★★"],["2","贈与等を受けた者の取扱い","★★"]],"2-11":[["1","小規模事業者等の現金基準","★★"],["2","無記名の公社債の利子等の現金基準","★"]],"2-12":[["1","内容"],["2","申告要件"],["3","取得資産の取得価額等"]],"2-13":[["1","特別控除","★★"],["2","長期譲渡所得の税額軽減","★★"],["3","特定の居住用財産の買換えの場合の長期譲渡所得の課税の特例"],["4","申告要件","★★"],["5","居住用財産の譲渡","★"]],"2-14":[["1","利子所得の課税関係","★★"],["2","配当所得の課税関係","★★"],["3","損益通算","★"],["4","申告不要"],["5","損益通算"]],"2-15":[["1","総合課税","★"],["2","一般株式分離課税","★★"],["3","上場株式分離課税","★★"],["4","上場株式等に係る譲渡損失の損益通算及び繰越控除","★★"]],"2-16":[["1","特定口座制度","★"],["2","特定管理口座制度","★"]],"2-17":[["1","非課税口座制度","★"],["2","未成年者口座制度"]],"2-18":[["1","内容","★★"],["2","手続","★★"],["3","適用除外","★★"],["4","取得した株式を譲渡した場合","★★"]],"2-19":[["1","特定株式又は設立特定株式の取得に要した金額の控除"],["2","特定株式又は設立特定株式の繰戻しによる還付"],["3","特定株式に係る譲渡損失の繰越控除等","★★"],["4","特定新規中小会社が発行した株式を取得した場合の課税の特例"]],"2-20":[["1","総合課税","★"],["2","申告分離課税","★"],["3","先物取引の差金等決済に係る損失の繰越控除","★"]],"2-21":[["1","必要経費不算入","★★"],["2","隠蔽仮装等に係る簿外経費の必要経費不算入","★★"],["3","支出した金額不算入","★"],["4","外国税額の必要経費不算入等","★"]],"2-22":[["1","棚卸資産","★"],["2","事業用固定資産・繰延資産","★★"],["3","山林","★"],["4","事業的規模以外の業務用資産","★★"],["5","生活に通常必要でない資産","★★"],["6","生活に通常必要な資産等","★★"]],"2-23":[["1","事業上の債権が回収不能となった場合","★★"],["2","事業上の債権以外の債権が回収不能となった場合","★★"],["3","更正の請求","★★"]],"2-24":[["1","貸倒引当金繰入","★★"],["2","貸倒引当金戻入","★★"],["3","申告要件","★★"],["4","繰入限度額","★★"],["5","用語の意義","★"]],"2-25":[["1","対価の必要経費不算入等","★★"],["2","青色事業専従者給与の必要経費算入","★★"],["3","事業専従者控除額の必要経費算入","★★"],["4","青色事業専従者又は事業専従者の判定","★★"]],"2-26":[["1","内容"],["2","申告要件"]],"2-27":[["1","取得費の原則","★★"],["2","概算取得費控除","★★"],["3","贈与等により取得した資産の取得費等","★★"],["4","相続税額の取得費加算","★★"]],"2-28":[["1","原則","★★"],["2","特例","★★"]],"3-1":[["1","総所得金額"],["2","山林所得金額"],["3","退職所得金額"],["4","上場株式等に係る配当所得等の金額"],["5","短期譲渡所得の金額"],["6","長期譲渡所得の金額"],["7","一般株式等に係る譲渡所得等の金額"],["8","上場株式等に係る譲渡所得等の金額"],["9","先物取引に係る雑所得等の金額"]],"3-2":[["1","山林所得金額","★"],["2","退職所得金額","★"],["3","上場株式等に係る配当所得等の金額","★"],["4","短期譲渡所得の金額","★"],["5","長期譲渡所得の金額","★"],["6","一般株式等に係る譲渡所得等の金額","★"],["7","上場株式等に係る譲渡所得等の金額","★"],["8","先物取引に係る雑所得等の金額","★"]],"3-3":[["1","原則","★★"],["2","生活に通常必要でない資産の損失の金額","★★"],["3","不動産所得に係る特例","★★"],["4","短期譲渡所得の損失の金額","★★"],["5","長期譲渡所得の損失の金額","★★"],["6","上場株式等に係る配当所得の損失の金額","★"],["7","一般株式等の譲渡による損失の金額","★★"],["8","上場株式等の譲渡による損失の金額","★★"],["9","先物取引に係る損失の金額","★"]],"3-4":[["1","純損失の繰越控除","★★"],["2","申告要件","★★"],["3","純損失の金額","★★"],["4","特定非常災害に係る純損失の繰越控除の特例","★"],["5","繰越控除の順序"]],"3-5":[["1","雑損失の繰越控除","★★"],["2","申告要件","★★"],["3","雑損失の金額","★★"],["4","特定非常災害に係る雑損失の繰越控除の特例","★"],["5","繰越控除の順序"]],"3-6":[["1","居住用財産の譲渡損失の損益通算","★★"],["2","居住用財産の譲渡損失の繰越控除","★★"],["3","居住用財産の譲渡損失の金額","★★"],["4","居住用財産の譲渡","★"]],"3-7":[["1","特定居住用財産の譲渡損失の損益通算","★★"],["2","特定居住用財産の譲渡損失の繰越控除","★★"],["3","特定居住用財産の譲渡損失の金額","★★"],["4","居住用財産の譲渡","★"]],"3-8":[["1","内容","★★"],["2","年末調整における控除","★★"],["3","扶養親族等の判定の時期","★"],["4","用語の意義","★"]],"4-1":[["1","雑損控除","★★"],["2","医療費控除","★★"],["3","社会保険料控除","★"],["4","小規模企業共済等掛金控除","★"],["5","生命保険料控除","★"],["6","地震保険料控除","★"],["7","寄附金控除","★★"],["8","災免法による軽減又は免除","★★"],["9","災免法による徴収猶予"]],"4-2":[["1","障害者控除","★"],["2","寡婦控除","★"],["3","ひとり親控除"],["4","勤労学生控除","★"],["5","配偶者控除","★★"],["6","配偶者特別控除","★★"],["7","扶養控除","★★"],["8","特定親族特別控除","★★"],["9","基礎控除","★"],["10","扶養親族等の判定の時期","★★"]],"4-3":[["1","内容"],["2","医療費の範囲"],["3","手続"]],"5-1":[["1","内容","★★"],["2","申告要件","★★"],["3","変動所得","★★"],["4","臨時所得","★★"]],"5-2":[["1","配当控除","★★"],["2","用語の意義","★"],["3","控除限度額","★"]],"5-3":[["1","内容","★★"],["2","外国税額控除の繰越控除","★"],["3","外国所得税額が減額された場合","★"],["4","還付","★"],["5","控除順序","★"]],"5-4":[["1","内容","★★"],["2","申告要件","★★"],["3","災害により居住の用に供することができなくなった場合","★"],["4","要耐震改修住宅の特例","★"],["5","年末調整における控除","★★"],["6","転任後の再居住年以後の特例","★"],["7","適用除外","★"],["8","控除限度額","★"]],"5-5":[["1","居住年の翌年以後に転任等があった場合"],["2","居住年に転任等があった場合"]],"5-6":[["1","住宅借入金等特別税額控除","★★"],["2","認定住宅等新築等特別税額控除","★★"]],"5-7":[["1","内容"],["2","用語の意義"]],"6-1":[["1","一般の場合","★★"],["2","特別農業所得者の場合","★★"],["3","納期限の特例","★★"],["4","通知","★★"],["5","予定納税基準額の計算の基準日等","★★"],["6","予定納税基準額","★"]],"6-2":[["1","承認の申請","★★"],["2","手続","★★"],["3","処分","★★"],["4","減額承認後の予定納税額","★★"],["5","申告納税見積額","★"],["6","予定納税基準額","★"]],"6-3":[["1","確定所得申告","★★"],["2","確定所得申告を要しない場合","★★"],["3","還付等を受けるための確定申告","★★"],["4","確定損失申告","★★"],["5","復興特別所得税の確定申告","★"]],"6-4":[["1","死亡の場合","★★"],["2","出国の場合","★★"]],"6-5":[["1","一般の場合"],["2","死亡の場合"],["3","出国の場合"],["4","復興特別所得税の納付"]],"6-6":[["1","確定申告税額の延納","★★"],["2","延払条件付譲渡に係る税額の延納","★★"],["3","復興特別所得税の延納","★"],["4","利子税の納付","★"]],"6-7":[["1","一般の場合","★★"],["2","事業を廃止した場合等","★★"],["3","死亡の場合","★★"],["4","還付加算金","★"],["5","純損失の金額","★★"]],"6-8":[["1","内容","★★"],["2","帳簿書類","★★"],["3","添付書類","★★"],["4","青色申告者の特典","★"]],"6-9":[["1","家事関連費の必要経費算入","★★"],["2","棚卸資産の評価についての低価法の選択","★"],["3","特別償却","★"],["4","中小事業者の少額減価償却資産の取得価額の必要経費算入の特例"],["5","貸倒引当金（一括評価）","★★"],["6","青色事業専従者給与の必要経費算入","★★"],["7","小規模事業者の現金基準","★★"],["8","青色申告特別控除","★★"],["9","純損失の繰越控除","★★"],["10","純損失の繰戻しによる還付","★★"],["11","特別税額控除","★"],["12","減価償却資産等の損失の必要経費算入の特例"],["13","更正又は決定"]],"7-1":[["1","源泉徴収"],["2","源泉徴収に係る所得税の納税地"],["3","復興特別所得税の源泉徴収"],["4","源泉徴収における推計課税"]],"7-2":[["1","利子所得の源泉徴収","★★"],["2","配当所得の源泉徴収","★★"],["3","納税地","★"],["4","復興特別所得税の源泉徴収","★★"]],"7-3":[["1","源泉徴収義務","★★"],["2","源泉徴収を要しない場合","★"],["3","源泉徴収税額","★★"],["4","給与所得者の扶養控除等申告書","★★"],["5","年末調整","★★"],["6","納期の特例","★★"],["7","納税地","★"],["8","復興特別所得税の源泉徴収","★"],["9","災免法による徴収猶予","★★"]],"7-4":[["1","内容","★★"],["2","過納額の還付","★"],["3","不足額の徴収","★"],["4","給与所得者の源泉徴収に関する申告","★"],["5","復興特別所得税の年末調整","★"],["6","給与所得の源泉徴収票","★★"]],"7-5":[["1","源泉徴収義務","★★"],["2","源泉徴収を要しない場合","★"],["3","源泉徴収税額","★★"],["4","退職所得の受給に関する申告書","★★"],["5","納期の特例","★★"],["6","納税地","★"],["7","復興特別所得税の源泉徴収","★"],["8","退職所得の源泉徴収票","★★"]],"7-6":[["1","源泉徴収義務"],["2","公的年金等の受給者の扶養親族等申告書"],["3","源泉徴収を要しない場合"],["4","納税地"],["5","復興特別所得税の源泉徴収"],["6","公的年金等の源泉徴収票"],["7","災免法による徴収猶予"]],"8-1":[["1","帳簿書類の備付け及び保存","★★"],["2","添付書類","★★"],["3","総収入金額報告書","★"]],"8-2":[["1","給与所得の源泉徴収票","★★"],["2","退職所得の源泉徴収票","★★"],["3","公的年金等の源泉徴収票","★"],["4","支払調書","★"],["5","国外財産調書","★"],["6","財産債務調書","★"]],"9-1":[["1","国税通則法の原則","★"],["2","措置法の特則","★"],["3","手続","★"],["4","納付","★"],["5","修正申告の効力"],["6","附帯税等"]],"9-2":[["1","国税通則法の原則","★"],["2","国税通則法の特則"],["3","所得税法の特則","★"],["4","措置法の特則","★"],["5","手続","★"],["6","処分","★"],["7","徴収の不猶予"]],"9-3":[["1","更正"],["2","決定"],["3","再更正"],["4","その他"],["5","所得税法の特則"],["6","措置法の特則"],["7","納付"]],"9-4":[["1","概要"],["2","不服申立てができる場合"],["3","不服申立て期間"],["4","手続"],["5","決定又は裁決"]],"10-1":[["1","国外転出をする場合の譲渡所得等の特例"],["2","譲渡がなかったものとされる場合"],["3","納税猶予"],["4","取得価額"]],"10-2":[["1","贈与等により非居住者に資産が移転した場合の譲渡所得等の特例"],["2","譲渡がなかったものとされる場合"],["3","納税猶予"],["4","取得価額"]]};
 // 各題の中見出し⑴⑵…（柱の下層。best-effort抽出、アプリ内で編集可）
@@ -377,7 +436,7 @@ function readJson(storage, key, fallback) {
   }
 }
 const SUBJECT_ID = 'juminzei';
-const CACHE_SCHEMA = 2;
+const CACHE_SCHEMA = 3;
 function stateMeta() {
   return { subject: SUBJECT_ID, db: DEFAULTS.db, flagDb: DEFAULTS.flagDb, schema: CACHE_SCHEMA };
 }
@@ -587,7 +646,7 @@ async function showRelated(sec, n, key) {
       let tmpl = '';
       for (const r of hs) {
         const num = prop(r.properties, '穴番号', 'number');
-        const t = (prop(r.properties, '問題文', 'rich_text') || '').replace('〔_〕', `〔●${num}〕`);
+        const t = normalizeQuestionLineBreaks(prop(r.properties, '問題文', 'rich_text')).replace('〔_〕', `〔●${num}〕`);
         if (t.length > tmpl.length) tmpl = t;
       }
       _relCache[ck] = { tmpl, ans };
@@ -692,7 +751,7 @@ async function loadWeakness(rate = WEAK_RATE) {
     const mapCard = r => tagCard({
       pageId: r.id, id: prop(r.properties, '穴ID', 'title'), section: prop(r.properties, '題番号', 'rich_text'),
       title: prop(r.properties, '題名', 'rich_text'), heading: prop(r.properties, '大見出し', 'rich_text'),
-      question: prop(r.properties, '問題文', 'rich_text'), answer: prop(r.properties, '正解', 'rich_text'),
+      question: normalizeQuestionLineBreaks(prop(r.properties, '問題文', 'rich_text')), answer: prop(r.properties, '正解', 'rich_text'),
       holeNum: prop(r.properties, '穴番号', 'number'), rank: prop(r.properties, '重要度', 'select'),
       interval: prop(r.properties, '間隔_日数', 'number') || 1, ef: prop(r.properties, '難易度係数', 'number') || 2.5,
       correct: prop(r.properties, '正答回数', 'number'), total: prop(r.properties, '出題回数', 'number'),
@@ -818,7 +877,7 @@ async function loadLocalCards(msg) {
     const p = progress[q.id] || {};
     return tagCard({
       pageId: 'local:' + q.id, id: q.id, section: q.section, title: q.title,
-      heading: q.heading, question: q.question, answer: q.answer,
+      heading: q.heading, question: normalizeQuestionLineBreaks(q.question), answer: q.answer,
       holeNum: q.hole_num, rank: q.rank,
       interval: p.interval || q.interval || 1, ef: p.ef || q.ease_factor || 2.5,
       correct: p.correct || 0, total: p.total || 0,
@@ -878,7 +937,7 @@ async function loadCards(force) {
     $('streak').textContent = streak;
     if (queueIdx >= cards.length) showDone();
     else { $('quizBox').classList.remove('hidden'); $('quizBox').classList.add('flex'); renderCard(); }
-    toast('前回の続きから再開', 'bg-indigo-500');
+    toast('前回の続きから再開', 'bg-orange-600');
     return;
   }
   inWrongReview = false;
@@ -904,7 +963,7 @@ async function loadCards(force) {
       section: prop(r.properties, '題番号', 'rich_text'),
       title: prop(r.properties, '題名', 'rich_text'),
       heading: prop(r.properties, '大見出し', 'rich_text'),
-      question: prop(r.properties, '問題文', 'rich_text'),
+      question: normalizeQuestionLineBreaks(prop(r.properties, '問題文', 'rich_text')),
       answer: prop(r.properties, '正解', 'rich_text'),
       holeNum: prop(r.properties, '穴番号', 'number'),
       rank: prop(r.properties, '重要度', 'select'),
@@ -1041,7 +1100,7 @@ function fullSectionText(sec) {
     seen.add(card.heading);
     parts.push(card.question.replace('〔_〕', `〔●${card.holeNum}〕`));
   }
-  const full = parts.join('\n');
+  const full = parts.join('\n\n');
   _secTextCache[sec] = full;
   return full;
 }
@@ -1067,12 +1126,7 @@ function renderCard() {
   renderRelLinks(c);
 
   // 見出し単位の本文をそのまま表示（題全体の連結はしない＝文章が崩れない）
-  let raw = c.question;
-  // 先頭の見出し行〔n〕…に色を付ける
-  raw = raw.replace(/^(〔\d+〕[^\n]*)/, '‹‹HD››$1‹‹/HD››');
-  // 小見出し ⑴⑵…（条文番号付き）に色を付け、改行が無ければ追加
-  raw = raw.replace(/([⑴-⒇][^（）\n]{0,28}（[^）]*[法令措則条通規][^）]*）)(\n?)/g,
-    (m, h, nl) => '‹‹SH››' + h + '‹‹/SH››' + (nl || '\n'));
+  let raw = decorateJuminHeadingLines(c.question);
   // 出題穴の直前の読点（、。改行）から穴までを文脈ハイライト（文脈理解のため）
   const hi = raw.indexOf('〔_〕');
   if (hi >= 0) {
@@ -1086,8 +1140,14 @@ function renderCard() {
   // 出題穴と伏せ字を同じ3文字幅に統一（問題が進んでも本文がズレない）
   const curCls = wrongMap[c.id] ? 'hole-wrong' : 'hole';
   $('qText').innerHTML = esc(raw)
-    .split('‹‹HD››').join('<span class="bodyhead">').split('‹‹/HD››').join('</span>')
-    .split('‹‹SH››').join('<span class="subhead">').split('‹‹/SH››').join('</span>')
+    .split('‹‹JH0››').join('<span class="jumin-head-0">').split('‹‹/JH0››').join('</span>')
+    .split('‹‹JH1››').join('<span class="jumin-head-1">').split('‹‹/JH1››').join('</span>')
+    .split('‹‹JH2››').join('<span class="jumin-head-2">').split('‹‹/JH2››').join('</span>')
+    .split('‹‹JC››').join('<span class="jumin-cite">').split('‹‹/JC››').join('</span>')
+    .split('‹‹JM1››').join('<span class="jumin-marker-1">').split('‹‹/JM1››').join('</span>')
+    .split('‹‹JM2››').join('<span class="jumin-marker-2">').split('‹‹/JM2››').join('</span>')
+    .split('‹‹JM3››').join('<span class="jumin-marker-3">').split('‹‹/JM3››').join('</span>')
+    .split('‹‹JN››').join('<span class="jumin-note">').split('‹‹/JN››').join('</span>')
     .split('‹‹CL››').join('<span class="clause">').split('‹‹/CL››').join('</span>')
     .replace(/〔_〕/g, `<span class="${curCls} blink">〔？〕</span>`)
     .replace(/〔●(\d+)〕/g, (m, n) => {
@@ -1301,7 +1361,7 @@ function undo() {
   $('secDoneBox').classList.add('hidden'); $('secDoneBox').classList.remove('flex');
   $('footerBar').classList.remove('hidden');
   renderCard();
-  toast('↩ 1問戻しました', 'bg-indigo-500');
+  toast('↩ 1問戻しました', 'bg-orange-600');
 }
 
 function judge(ok) {
@@ -1479,7 +1539,7 @@ clearRuntimeSubjectCaches = () => {
 // Notionの全穴から累計正答率を集計（端末を跨いで共通、リセットされない）
 async function aggregateAllFromNotion() {
   if (!cfg.token) { toast('⚙トークン未設定', 'bg-rose-500'); return; }
-  toast('📊 集計中...', 'bg-indigo-500');
+  toast('📊 集計中...', 'bg-orange-600');
   try {
     let res = [], cursor;
     do {
@@ -1663,7 +1723,7 @@ function reviewAllToday() {
   $('doneBox').classList.add('hidden'); $('doneBox').classList.remove('flex');
   $('quizBox').classList.remove('hidden'); $('quizBox').classList.add('flex');
   $('footerBar').classList.remove('hidden');
-  toast('🔁 今日の分を再復習（練習）', 'bg-violet-500');
+  toast('🔁 今日の分を再復習（練習）', 'bg-amber-600');
   renderCard();
 }
 
@@ -1726,7 +1786,7 @@ function applyEditLocally(c, newQ) {
   for (const lc of baseCards) {
     if (lc === c || lc.section !== c.section || lc.heading !== c.heading) continue;
     const mk = `〔●${lc.holeNum}〕`;
-    if (base.includes(mk)) lc.question = base.replace(mk, '〔_〕');
+    if (base.includes(mk)) lc.question = normalizeQuestionLineBreaks(base.replace(mk, '〔_〕'));
   }
   clearSecTextCache();
 }
@@ -1735,7 +1795,7 @@ async function saveEdit() {
   const c = cards[queueIdx];
   if (!c) return;
   if (!guardCardSource(c, '穴の編集保存')) return;
-  const q = $('editQ').value, a = $('editA').value.trim();
+  const q = normalizeQuestionLineBreaks($('editQ').value), a = $('editA').value.trim();
   $('editSaveBtn').disabled = true;
   $('editMsg').textContent = '保存中...';
   try {
@@ -1912,7 +1972,7 @@ async function applyHoleSelection() {
     // ローカルを即時更新してUIを反映（残り穴のNotion更新は背景で実行）
     for (const h of keep) {
       const lc = baseCards.find(x => x.pageId === h.pageId);
-      if (lc) lc.question = T.replace(`〔●${h.num}〕`, '〔_〕');
+      if (lc) lc.question = normalizeQuestionLineBreaks(T.replace(`〔●${h.num}〕`, '〔_〕'));
     }
     for (const h of absorbed) {
       baseCards = baseCards.filter(x => x.pageId !== h.pageId);
@@ -1921,7 +1981,7 @@ async function applyHoleSelection() {
     }
     const newCard = tagCard({
       pageId: res.id, id, section: sec, title: SECTION_TITLES[sec] || '', heading,
-      question: qNew, answer: newAnswer, holeNum: newNum, rank: '★',
+      question: normalizeQuestionLineBreaks(qNew), answer: newAnswer, holeNum: newNum, rank: '★',
       interval: 1, ef: 2.5, correct: 0, total: 0,
     });
     baseCards.push(newCard);
@@ -1967,7 +2027,7 @@ async function saveAdd() {
   if (!guardSourceMeta(openAdd._sourceMeta, '穴の追加')) return;
   const sec = openAdd._sec;
   const heading = $('addHeading').value.trim();
-  const q = $('addQ').value.trim();
+  const q = normalizeQuestionLineBreaks($('addQ').value);
   const a = $('addA').value.trim();
   if (!q || !a) { $('addMsg').textContent = '⚠ 問題文と正解は必須です'; return; }
   if (!q.includes('〔_〕')) { $('addMsg').textContent = '⚠ 問題文に答える箇所〔_〕を入れてください'; return; }
@@ -2041,15 +2101,15 @@ async function propagateEdit(c, newQ) {
     const hn = prop(pg.properties, '穴番号', 'number');
     const mk = `〔●${hn}〕`;
     if (!base.includes(mk)) continue;
-    const fixed = base.replace(mk, '〔_〕');
-    const text = prop(pg.properties, '問題文', 'rich_text');
+    const fixed = normalizeQuestionLineBreaks(base.replace(mk, '〔_〕'));
+    const text = normalizeQuestionLineBreaks(prop(pg.properties, '問題文', 'rich_text'));
     if (fixed === text) continue; // 変化なし
     await notion('/v1/pages/' + pg.id, {
       properties: { '問題文': { rich_text: [{ text: { content: fixed.slice(0, 2000) } }] } },
     }, 'PATCH');
     n++;
     const lc = baseCards.find(x => x.pageId === pg.id);
-    if (lc) lc.question = fixed;
+    if (lc) lc.question = normalizeQuestionLineBreaks(fixed);
   }
   if (n) { clearSecTextCache(); saveState(); }
   return n;
@@ -2057,7 +2117,7 @@ async function propagateEdit(c, newQ) {
 
 // ── コンフェッティ ──
 function confetti() {
-  const colors = ['#f43f5e', '#6366f1', '#22c55e', '#eab308', '#a855f7', '#06b6d4'];
+  const colors = ['#f43f5e', '#f97316', '#22c55e', '#eab308', '#b45309', '#fb7185'];
   for (let i = 0; i < 26; i++) {
     const el = document.createElement('div');
     el.className = 'confetti-piece';
@@ -2101,12 +2161,12 @@ function renderStats() {
         ? `累計（${new Date(fullStats.ts).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}時点・端末共通）`
         : '累計：下のボタンでNotionから集計できます';
   const periodBtns = [['today', '本日'], ['7d', '過去7日'], ['all', '累計']]
-    .map(([p, lbl]) => `<button onclick="setStatPeriod('${p}')" class="px-3 py-1 text-xs rounded-lg pressable ${statPeriod === p ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700'}">${lbl}</button>`).join('');
+    .map(([p, lbl]) => `<button onclick="setStatPeriod('${p}')" class="px-3 py-1 text-xs rounded-lg pressable ${statPeriod === p ? 'bg-orange-700 text-white' : 'bg-slate-200 dark:bg-slate-700'}">${lbl}</button>`).join('');
 
   const pLbl = statPeriod === 'today' ? '本日' : statPeriod === '7d' ? '7日間' : '累計';
   box.innerHTML = `
   <div class="grid grid-cols-3 gap-2">
-    <div class="bg-gradient-to-br from-indigo-500 to-violet-600 text-white rounded-2xl p-3 text-center shadow">
+    <div class="bg-gradient-to-br from-orange-600 to-amber-600 text-white rounded-2xl p-3 text-center shadow">
       <div class="text-2xl font-extrabold">${totalAns}</div><div class="text-[11px] opacity-90">${pLbl}回答</div>
     </div>
     <div class="bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-2xl p-3 text-center shadow">
@@ -2153,7 +2213,7 @@ function renderStats() {
       ${rangeSel ? `<button onclick="toggleStatRange()" class="px-3 py-1 text-xs rounded-lg pressable ${statRangeOnly ? 'bg-emerald-600 text-white' : 'bg-slate-200 dark:bg-slate-700'}">📑 範囲のみ</button>` : ''}
     </div>
     <div class="text-[11px] text-slate-400 mb-1">${aggInfo}${statRangeOnly && rangeSel ? '・選択範囲のみ' : ''}</div>
-    ${statPeriod === 'all' ? '<button onclick="aggregateAllFromNotion()" class="mb-2 px-3 py-1.5 text-xs bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 rounded-lg pressable">📊 Notionから全題を集計（更新）</button>' : ''}
+    ${statPeriod === 'all' ? '<button onclick="aggregateAllFromNotion()" class="mb-2 px-3 py-1.5 text-xs bg-orange-100 dark:bg-orange-950 text-orange-800 dark:text-orange-300 rounded-lg pressable">📊 Notionから全題を集計（更新）</button>' : ''}
     ${secs.length === 0 ? '<div class="text-sm text-slate-400">まだ回答データがありません</div>' :
       secs.map(s => {
         const h = STAT[s], t = h.ok + h.ng, rate = t ? Math.round(h.ok / t * 100) : 0;
@@ -2236,7 +2296,7 @@ function setPillarLevel(lv) {
   ['lvl1', 'lvl2'].forEach((id, i) => {
     const on = (i + 1) === lv;
     $(id).className = 'py-2.5 rounded-xl font-bold pressable ' + (i === 0 ? 'text-sm ' : 'text-xs ') +
-      (on ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700');
+      (on ? 'bg-orange-700 text-white' : 'bg-slate-200 dark:bg-slate-700');
   });
 }
 function subMarkChar(m) { return String.fromCharCode(0x2474 + (m - 1)); }
@@ -2345,7 +2405,7 @@ function pillarAppendItem(it, idx) {
   const rate = pItemRate(sec, it.key);
   const rcls = rate == null ? '' : rate >= 90 ? 'text-emerald-500' : rate >= 70 ? 'text-amber-500' : 'text-rose-500';
   li.innerHTML =
-    `<span class="${isSub ? 'text-slate-400' : 'text-indigo-600 dark:text-indigo-400'} shrink-0">${mark}</span>` +
+    `<span class="${isSub ? 'text-stone-400' : 'text-orange-700 dark:text-orange-400'} shrink-0">${mark}</span>` +
     `<span class="flex-1">${esc(it.name)}${it.star ? `<span class="text-amber-500 ml-1 text-[12px]">${it.star}</span>` : ''}</span>` +
     (rate == null ? '' : `<span class="text-[10px] ${rcls} shrink-0 font-bold">${rate}%</span>`) +
     `<span class="pjudge text-[13px] shrink-0 w-3.5 text-center"></span>` +
@@ -2492,7 +2552,7 @@ function pillarRepeat() {
   $('pillarStart').classList.add('hidden'); $('pillarStart').classList.remove('flex');
   $('pillarDone').classList.add('hidden'); $('pillarDone').classList.remove('flex');
   $('pillarCard').classList.remove('hidden'); $('pillarCard').classList.add('flex');
-  toast('🔁 もう一度復習', 'bg-violet-500');
+  toast('🔁 もう一度復習', 'bg-amber-600');
   pillarRender();
 }
 function pillarBackStart() { renderPillarStart(); }
@@ -2510,8 +2570,8 @@ function renderRange() {
   const sel = selectedSections() || ALL_SECTIONS;
   $('rangeList').innerHTML = ALL_SECTIONS.map(s =>
     `<label class="flex items-start gap-2 py-1.5 border-b border-slate-100 dark:border-slate-800 last:border-0">
-      <input type="checkbox" class="rangecb w-4 h-4 mt-0.5 shrink-0 accent-indigo-600" value="${s}" ${sel.includes(s) ? 'checked' : ''}>
-      <span class="leading-snug"><b class="text-indigo-600 dark:text-indigo-400">${s}</b>${rankBadge(s)}
+      <input type="checkbox" class="rangecb w-4 h-4 mt-0.5 shrink-0 accent-orange-700" value="${s}" ${sel.includes(s) ? 'checked' : ''}>
+      <span class="leading-snug"><b class="text-orange-700 dark:text-orange-400">${s}</b>${rankBadge(s)}
         <span class="text-[12px] text-slate-600 dark:text-slate-300">${esc(SECTION_TITLES[s] || '')}</span></span>
     </label>`).join('');
   renderRankFilter();
@@ -2541,7 +2601,7 @@ function renderRankFilter() {
     const cnt = ALL_SECTIONS.filter(s => secRank(s) === r).length;
     if (!cnt) return '';
     const on = !!rankFilterOn[r];
-    const st = on ? (RANK_STYLE[r] || 'bg-slate-500 text-white') + ' ring-2 ring-indigo-400'
+    const st = on ? (RANK_STYLE[r] || 'bg-slate-500 text-white') + ' ring-2 ring-orange-400'
       : 'bg-slate-100 dark:bg-slate-800 text-slate-500';
     return `<button onclick="toggleRankFilter('${r}')" class="px-2.5 py-1 text-xs rounded-lg font-bold pressable ${st}">${r}<span class="opacity-70 ml-0.5">${cnt}</span></button>`;
   }).join('');
@@ -2565,7 +2625,7 @@ function savePreset() {
 function renderPresets() {
   const ps = JSON.parse(appStorage.getItem('presets') || '{}');
   $('presetList').innerHTML = Object.keys(ps).map(n =>
-    `<button onclick="loadPreset('${esc(n)}')" class="px-3 py-1.5 text-xs bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-300 rounded-lg pressable">${esc(n)}</button>`).join('');
+    `<button onclick="loadPreset('${esc(n)}')" class="px-3 py-1.5 text-xs bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 rounded-lg pressable">${esc(n)}</button>`).join('');
 }
 function loadPreset(name) {
   const sel = (JSON.parse(appStorage.getItem('presets') || '{}'))[name] || [];
