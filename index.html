@@ -2492,11 +2492,15 @@ renderStats = function renderStatsV4() {
   const periodBtns = [['today', '本日'], ['7d', '7日'], ['30d', '30日'], ['90d', '90日'], ['all', '全期間']]
     .map(([p, lbl]) => `<button onclick="setStatPeriod('${p}')" class="px-3 py-1 text-xs rounded-lg pressable ${statPeriod === p ? 'bg-blue-700 text-white' : 'bg-slate-200 dark:bg-slate-700'}">${lbl}</button>`).join('');
   const pLbl = { today: '本日', '7d': '7日', '30d': '30日', '90d': '90日', all: '全期間' }[statPeriod] || '30日';
-  const syncLabel = pendingAnswers.length
-    ? `<span class="text-amber-600 dark:text-amber-400 font-bold">送信待ち ${pendingAnswers.length}件</span>`
-    : analyticsLoading
-      ? '<span class="text-sky-600">Notion読込中…</span>'
-      : `<span class="text-emerald-600 dark:text-emerald-400 font-bold">Notion同期済</span>`;
+  const syncLabel = !cfg.token
+    ? '<span class="text-slate-500 font-bold">端末保存（トークン未設定）</span>'
+    : pendingAnswers.length
+      ? `<span class="text-amber-600 dark:text-amber-400 font-bold">送信待ち ${pendingAnswers.length}件</span>`
+      : analyticsLoading
+        ? '<span class="text-sky-600">Notion読込中…</span>'
+        : answerCloudTs
+          ? '<span class="text-emerald-600 dark:text-emerald-400 font-bold">Notion同期済</span>'
+          : '<span class="text-sky-600 font-bold">Notion接続待ち</span>';
 
   box.innerHTML = `
   <div class="rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 px-3 py-2 text-[11px] flex items-center justify-between gap-2">
