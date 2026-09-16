@@ -358,7 +358,7 @@
 
 <script>
 'use strict';
-const APP_VER = 'v4';
+const APP_VER = 'v5';
 const EXAM_DATE = new Date('2027-08-03T00:00:00');
 // 見出し・段落の改行は残し、Notion由来の空行だけを整理する。
 function normalizeQuestionLineBreaks(value) {
@@ -916,7 +916,7 @@ async function loadWeakness(rate = WEAK_RATE) {
     for (const c of weak) (bySec[c.section] = bySec[c.section] || []).push(c);
     cards = [];
     for (const s of Object.keys(bySec).sort(tidSort)) cards = cards.concat(orderSectionCards(bySec[s]));
-    baseCards = cards.slice(); clearSecTextCache(); mergeRank(baseCards);
+    baseCards = cards.slice(); normalizeHeadingTemplatesLocally(baseCards); clearSecTextCache(); mergeRank(baseCards);
     queueIdx = 0; wrongCards = []; sessionResults = {}; streak = 0;
     inWrongReview = false; showSecPanels = false; undoStack = []; updateUndoBtn();
     saveState();
@@ -948,29 +948,43 @@ function saveState() {
       guardSourceMeta(null, '不明な出題データの保存');
       return;
     }
+    // cards と baseCards は通常ほぼ同じ内容なので、問題文を二重保存せずID列だけ保存する。
+    // 全題選択時に localStorage 上限を超え、古いキャッシュが残って追加穴が消える事故を防ぐ。
     appStorage.setItem('quizState', JSON.stringify({
       stateMeta: stateMeta(),
       date: todayStr(), range: appStorage.getItem('rangeSel') || 'null',
-      cards: main.cards, queueIdx: main.queueIdx, baseCards, sessionResults,
+      cardIds: main.cards.map(c => c.id), queueIdx: main.queueIdx, baseCards, sessionResults,
       wrongIds: wrongCards.map(c => c.id), streak,
     }));
-  } catch (e) { /* 容量超過時は諦める */ }
+    saveState._warned = false;
+    return true;
+  } catch (e) {
+    // 書込み失敗時に以前の状態を残すと、再読込で追加前へ巻き戻って見える。
+    appStorage.removeItem('quizState');
+    if (!saveState._warned) {
+      saveState._warned = true;
+      toast('端末キャッシュの容量不足。次回はNotionから最新状態を再取得します', 'bg-amber-600');
+    }
+    return false;
+  }
 }
 function loadState() {
   try {
     const s = JSON.parse(appStorage.getItem('quizState') || 'null');
     const cachedBase = s && (s.baseCards && s.baseCards.length ? s.baseCards : (s.cards || []));
-    if (!s || !isCurrentStateMeta(s.stateMeta) || !areCurrentCards(s.cards || []) || !areCurrentCards(cachedBase)) {
+    const hasCompactQueue = s && Array.isArray(s.cardIds);
+    if (!s || !isCurrentStateMeta(s.stateMeta) || (!hasCompactQueue && !areCurrentCards(s.cards || [])) || !areCurrentCards(cachedBase)) {
       appStorage.removeItem('quizState');
       return false;
     }
     if (s.date !== todayStr()) return false;
     if (s.range !== (appStorage.getItem('rangeSel') || 'null')) return false;
     baseCards = cachedBase;
+    normalizeHeadingTemplatesLocally(baseCards);
     // cards は baseCards と「同一オブジェクト」を参照させる（編集が出題キューにも反映されるように）
     mergeRank(baseCards);
     const byId = {}; baseCards.forEach(c => byId[c.id] = c);
-    cards = (s.cards || []).map(c => byId[c.id] || c);
+    cards = hasCompactQueue ? s.cardIds.map(id => byId[id]).filter(Boolean) : (s.cards || []).map(c => byId[c.id] || c);
     queueIdx = s.queueIdx; sessionResults = s.sessionResults || {};
     clearSecTextCache();
     wrongCards = baseCards.filter(c => (s.wrongIds || []).includes(c.id));
@@ -1018,7 +1032,7 @@ async function loadLocalCards(msg) {
   for (const c of all) (bySec[c.section] = bySec[c.section] || []).push(c);
   cards = [];
   for (const section of Object.keys(bySec).sort(tidSort)) cards.push(...orderSectionCards(bySec[section]));
-  baseCards = cards.slice(); clearSecTextCache();
+  baseCards = cards.slice(); normalizeHeadingTemplatesLocally(baseCards); clearSecTextCache();
   queueIdx = 0; wrongCards = []; sessionResults = {}; streak = 0;
   inWrongReview = false; showSecPanels = true; undoStack = []; updateUndoBtn();
   saveState();
@@ -1163,7 +1177,7 @@ async function loadCards(force) {
     for (const s of secs) {
       cards = cards.concat(orderSectionCards(bySec[s]));
     }
-    baseCards = cards.slice(); clearSecTextCache(); mergeRank(baseCards);
+    baseCards = cards.slice(); normalizeHeadingTemplatesLocally(baseCards); clearSecTextCache(); mergeRank(baseCards);
     queueIdx = 0; wrongCards = []; sessionResults = {}; streak = 0;
     scoped = false; inWrongReview = false; showSecPanels = true;
     undoStack = []; updateUndoBtn();
@@ -1180,24 +1194,38 @@ async function loadCards(force) {
 // ── 出題 ──
 function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
-// 穴の並びは holeNum ではなく「本文中の出現位置」で決める（途中追加でも順序が崩れない）
-// 各カード自身の〔_〕位置で並べる（マーカーを1文字に正規化して位置を比較）。
-// 代表1枚に依存しないので、追加穴も確実に本文位置どおりに割り込む。
-function holePos(card) {
-  const norm = (card.question || '').replace(/〔_〕|〔●\d+〕/g, m => m === '〔_〕' ? '\x02' : '\x01');
-  const i = norm.indexOf('\x02');
+// 穴の並びは holeNum ではなく「答えを埋めた本文中の出現位置」で決める。
+// 手動追加カードは既存穴が文字列、生成カードは〔●n〕なので、マーカーを1文字に
+// 縮めて比べると座標系がずれていた。全マーカーを実際の答えへ戻してから比較する。
+const HOLE_TARGET = '\uE000';
+function expandedQuestion(card, hcards) {
+  const group = hcards || baseCards.filter(x => x.section === card.section && x.heading === card.heading);
+  const byNum = {}; group.forEach(x => byNum[x.holeNum] = x);
+  return normalizeQuestionLineBreaks(card.question || '')
+    .replace('〔_〕', HOLE_TARGET)
+    .replace(/〔●(\d+)〕/g, (m, n) => byNum[+n] ? byNum[+n].answer : m);
+}
+function filledQuestion(card, hcards) {
+  return expandedQuestion(card, hcards).replace(HOLE_TARGET, card.answer || '');
+}
+function holePos(card, hcards) {
+  const i = expandedQuestion(card, hcards).indexOf(HOLE_TARGET);
   return i < 0 ? 1e9 : i;
 }
 function orderHeadingCards(hcards) {
   if (hcards.length <= 1) return hcards.slice();
-  return hcards.slice().sort((a, b) => holePos(a) - holePos(b));
+  return hcards.slice().sort((a, b) => holePos(a, hcards) - holePos(b, hcards) ||
+    (+a.holeNum || 0) - (+b.holeNum || 0) || String(a.id).localeCompare(String(b.id), 'ja'));
 }
 function orderSectionCards(scards) {
   const byHead = {};
   for (const c of scards) (byHead[c.heading] = byHead[c.heading] || []).push(c);
   const heads = Object.keys(byHead).sort((a, b) => {
-    const na = +((a.match(/〔(\d+)〕/) || [])[1] || 999), nb = +((b.match(/〔(\d+)〕/) || [])[1] || 999);
-    return na - nb;
+    // 住民税法の見出し番号は全角数字。NFKCで半角化して確実に問題順へ並べる。
+    const ma = a.match(/〔\s*([0-9０-９]+)\s*〕/), mb = b.match(/〔\s*([0-9０-９]+)\s*〕/);
+    const na = ma ? +ma[1].normalize('NFKC') : 999;
+    const nb = mb ? +mb[1].normalize('NFKC') : 999;
+    return na - nb || a.localeCompare(b, 'ja');
   });
   let out = [];
   for (const h of heads) out = out.concat(orderHeadingCards(byHead[h]));
@@ -1214,6 +1242,32 @@ function resortSection(sec) {
     else out.push(c);
   }
   baseCards = out;
+}
+
+// 追加・統合後、回答済み部分と現在表示中のカードは固定し、未回答部分だけを本文順に直す。
+// これにより現在位置が飛ばず、追加穴も必ずこの先のキューに残る。
+function reconcileSectionQueue(sec, newCard, removedIds, preferredCurrentId) {
+  const removed = new Set(removedIds || []);
+  const currentId = preferredCurrentId || ((cards[queueIdx] || {}).id || null);
+  const current = cards.find(c => c.id === currentId) || (newCard && newCard.id === currentId ? newCard : null);
+  const beforeIds = new Set(cards.slice(0, queueIdx).filter(c => c.section === sec).map(c => c.id));
+  let present = new Set(cards.filter(c => c.section === sec && !removed.has(c.id)).map(c => c.id));
+  if (newCard) present.add(newCard.id);
+  let ordered = orderSectionCards(baseCards.filter(c => c.section === sec && present.has(c.id)));
+  const past = cards.slice(0, queueIdx).filter(c => c.section === sec && present.has(c.id));
+  let future = ordered.filter(c => !beforeIds.has(c.id) && c.id !== currentId);
+  if (current && current.section === sec && present.has(current.id)) future.unshift(current);
+  const sectionQueue = past.concat(future);
+
+  const first = cards.findIndex(c => c.section === sec);
+  const insertAt = first >= 0 ? cards.slice(0, first).filter(c => c.section !== sec).length : Math.min(queueIdx + 1, cards.length);
+  cards = cards.filter(c => c.section !== sec && !removed.has(c.id));
+  cards.splice(insertAt, 0, ...sectionQueue);
+  if (currentId) {
+    const ni = cards.findIndex(c => c.id === currentId);
+    if (ni >= 0) queueIdx = ni;
+  }
+  resortSection(sec);
 }
 
 // 題全体の本文を組み立て（見出しごとの本文を順に連結、全穴を〔●n〕に）。題内で本文が統一される。
@@ -1604,7 +1658,7 @@ function reviewSectionWrong() {
 }
 function reviewSectionAll() {
   const sec = showSectionDone._sec;
-  const list = baseCards.filter(c => c.section === sec).sort((a, b) => a.holeNum - b.holeNum);
+  const list = orderSectionCards(baseCards.filter(c => c.section === sec));
   startScoped(list, () => showSectionDone(sec), '🔁 この題を全復習');
 }
 function continueNextSection() {
@@ -1878,7 +1932,9 @@ function startWrongReview() {
   const list = baseCards.filter(c => wrongMap[c.id]);
   if (list.length === 0) { toast('不正解はありません 👏', 'bg-emerald-600'); return; }
   inWrongReview = true; scoped = false; showSecPanels = false;
-  cards = list.slice(); baseCards = cards.slice(); queueIdx = 0;
+  // 全カードの母集団は保持する。ここを誤答カードだけで上書きすると、復習中の追加穴や
+  // その後の再開時に他のカードが消えたように見える。
+  cards = list.slice(); queueIdx = 0;
   wrongCards = []; sessionResults = {};
   undoStack = []; updateUndoBtn();
   saveState();
@@ -2003,21 +2059,21 @@ async function saveEdit() {
 // 現在の見出しの全文（穴を答えで埋めた素の文章）を復元
 function plainHeadingText(c) {
   if (!c) return '';
-  let t = c.question.replace('〔_〕', c.answer || '〔_〕');
-  t = t.replace(/〔●(\d+)〕/g, (m, n) => {
-    const o = baseCards.find(x => x.section === c.section && x.holeNum === +n);
-    return o ? o.answer : '●';
-  });
-  return t;
+  const hcards = baseCards.filter(x => x.section === c.section && x.heading === c.heading);
+  return filledQuestion(c, hcards);
 }
 function openAdd() {
-  const c = cards[queueIdx];
-  const sec = c ? c.section : (showSectionDone._sec || '');
+  const fromSectionDone = !$('secDoneBox').classList.contains('hidden') && !!showSectionDone._sec;
+  const sec = fromSectionDone ? showSectionDone._sec : ((cards[queueIdx] || {}).section || '');
+  const c = fromSectionDone
+    ? baseCards.filter(x => x.section === sec).slice(-1)[0]
+    : cards[queueIdx];
   const sourceMeta = c ? c.sourceMeta : showSectionDone._sourceMeta;
   if (!guardSourceMeta(sourceMeta, '穴の追加')) return;
   $('addSecLbl').textContent = sec;
   openAdd._sec = sec;
   openAdd._sourceMeta = sourceMeta;
+  openAdd._fromSectionDone = fromSectionDone;
   $('addHeading').value = c ? c.heading : '';
   // 見出し全文を自動入力。穴にしたい語を〔_〕で囲み、その語を正解欄に入れるだけ
   $('addQ').value = plainHeadingText(c);
@@ -2033,7 +2089,9 @@ let _bgSync = Promise.resolve();
 let _bgPending = 0;
 function queueBgSync(fn) {
   _bgPending++;
-  _bgSync = _bgSync.then(fn).then(() => {
+  // 1件の通信失敗でPromiseチェーンをrejectのままにすると、以後の追加同期がすべて
+  // 実行されなくなる。前回エラーを吸収してから必ず次の処理を開始する。
+  _bgSync = _bgSync.catch(() => {}).then(fn).then(() => {
     if (--_bgPending === 0) toast('✓ 同期完了', 'bg-emerald-600');
   }).catch(e => { _bgPending = Math.max(0, _bgPending - 1); toast('⚠ 同期エラー: ' + e.message, 'bg-rose-500'); });
 }
@@ -2049,27 +2107,75 @@ function openHoleSel() {
     $('holeSelModal').classList.remove('hidden');
   }
 }
+// 同見出しの全カードから正規本文と穴位置を復元する。
+// 代表1枚だけを見る方式では、その代表への背景同期が未完了だと直前の追加穴が消えていた。
+function headingModel(hcards) {
+  if (!hcards.length) return null;
+  const variants = hcards.map(c => filledQuestion(c, hcards));
+  const counts = new Map();
+  variants.forEach(t => counts.set(t, (counts.get(t) || 0) + 1));
+  const plainText = [...counts.keys()].sort((a, b) => counts.get(b) - counts.get(a) || b.length - a.length)[0] || '';
+  const ranges = [];
+  for (const c of hcards) {
+    const expanded = expandedQuestion(c, hcards);
+    const p = expanded.indexOf(HOLE_TARGET);
+    const filled = expanded.replace(HOLE_TARGET, c.answer || '');
+    let ps = p;
+    if (p < 0 || filled !== plainText) {
+      // 文面に差がある古いカードでも、前後文脈が一致すれば正規本文上の位置を復元する。
+      const prefix = p < 0 ? '' : expanded.slice(0, p);
+      const suffix = p < 0 ? '' : expanded.slice(p + HOLE_TARGET.length);
+      ps = prefix && plainText.startsWith(prefix) && plainText.slice(prefix.length + (c.answer || '').length) === suffix
+        ? prefix.length : -1;
+    }
+    if (ps < 0) continue;
+    ranges.push({ num: +c.holeNum, ps, pe: ps + (c.answer || '').length, answer: c.answer || '',
+      pageId: c.pageId, sourceMeta: c.sourceMeta });
+  }
+  const unique = new Map();
+  ranges.sort((a, b) => a.ps - b.ps || a.num - b.num).forEach(r => unique.set(r.num, r));
+  return { plainText, ranges: [...unique.values()].sort((a, b) => a.ps - b.ps || a.num - b.num) };
+}
+function markerTemplate(plainText, ranges) {
+  let out = '', cur = 0;
+  for (const r of ranges.slice().sort((a, b) => a.ps - b.ps || a.num - b.num)) {
+    if (r.ps < cur) continue;
+    out += plainText.slice(cur, r.ps) + `〔●${r.num}〕`;
+    cur = r.pe;
+  }
+  return out + plainText.slice(cur);
+}
+function normalizeHeadingTemplatesLocally(cardList) {
+  const groups = {};
+  for (const c of cardList || []) {
+    const key = c.section + '\u0000' + c.heading;
+    (groups[key] = groups[key] || []).push(c);
+  }
+  for (const group of Object.values(groups)) {
+    const model = headingModel(group);
+    if (!model || model.ranges.length !== group.length) continue;
+    const template = markerTemplate(model.plainText, model.ranges);
+    for (const c of group) c.question = normalizeQuestionLineBreaks(template.replace(`〔●${c.holeNum}〕`, '〔_〕'));
+  }
+}
+
 // モーダルの本文表示を（再）構築。連続追加でも最新の状態を表示
 function buildHoleSel(sec, heading) {
   const hcards = baseCards.filter(x => x.section === sec && x.heading === heading);
   if (!hcards.length || !areCurrentCards(hcards)) return false;
   const byNum = {}; hcards.forEach(x => byNum[x.holeNum] = x);
-  const rep = hcards[0];
-  const tmpl = rep.question.replace('〔_〕', `〔●${rep.holeNum}〕`);
-  // テンプレートを描画（穴は<mark>でハイライト）。plain位置を記録
-  const parts = tmpl.split(/(〔●\d+〕)/);
-  let html = '', pos = 0, plain = '', ranges = [];
-  for (const part of parts) {
-    const m = part.match(/^〔●(\d+)〕$/);
-    if (m) {
-      const num = +m[1], ans = (byNum[num] || {}).answer || '';
-      ranges.push({ num, ps: pos, pe: pos + ans.length, answer: ans, pageId: (byNum[num] || {}).pageId,
-        sourceMeta: (byNum[num] || {}).sourceMeta });
-      html += `<mark data-num="${num}" style="background:#fde68a;color:#92400e;border-radius:3px;padding:0 1px;">${esc(ans)}</mark>`;
-      plain += ans; pos += ans.length;
-    } else { html += esc(part); plain += part; pos += part.length; }
+  const model = headingModel(hcards);
+  if (!model) return false;
+  const ranges = model.ranges, plain = model.plainText;
+  let html = '', cur = 0;
+  for (const r of ranges) {
+    if (r.ps < cur) continue;
+    html += esc(plain.slice(cur, r.ps));
+    html += `<mark data-num="${r.num}" style="background:#fde68a;color:#92400e;border-radius:3px;padding:0 1px;">${esc(plain.slice(r.ps, r.pe))}</mark>`;
+    cur = r.pe;
   }
-  _holeSel = { sec, heading, plainText: plain, holeRanges: ranges, byNum, sourceMeta: rep.sourceMeta, sel: null };
+  html += esc(plain.slice(cur));
+  _holeSel = { sec, heading, plainText: plain, holeRanges: ranges, byNum, sourceMeta: hcards[0].sourceMeta, sel: null };
   $('holeSelWhere').textContent = `${sec} ${heading}`;
   $('holeSelText').innerHTML = html;
   $('holeSelMsg').textContent = '本文をなぞって選択してください';
@@ -2146,6 +2252,7 @@ async function applyHoleSelection() {
         '難易度係数': { number: 2.5 }, '正答回数': { number: 0 }, '出題回数': { number: 0 },
       },
     });
+    const activeId = (cards[queueIdx] || {}).id || null;
     // ローカルを即時更新してUIを反映（残り穴のNotion更新は背景で実行）
     for (const h of keep) {
       const lc = baseCards.find(x => x.pageId === h.pageId);
@@ -2162,19 +2269,9 @@ async function applyHoleSelection() {
       interval: 1, ef: 2.5, correct: 0, total: 0,
     });
     baseCards.push(newCard);
-    resortSection(sec);
-    const curId = cards[queueIdx] ? cards[queueIdx].id : null;
-    const idxs = cards.map((c, i) => c.section === sec ? i : -1).filter(i => i >= 0);
-    if (idxs.length) {
-      const lo = idxs[0], hi = idxs[idxs.length - 1];
-      const present = new Set(cards.filter(c => c.section === sec).map(c => c.id));
-      present.add(newCard.id);
-      const ordered = orderSectionCards(baseCards.filter(c => c.section === sec && present.has(c.id)));
-      cards.splice(lo, hi - lo + 1, ...ordered);
-    } else {
-      cards.splice(queueIdx + 1, 0, newCard);
-    }
-    if (curId) { const ni = cards.findIndex(c => c.id === curId); if (ni >= 0) queueIdx = ni; }
+    const removedIds = absorbed.map(h => (_holeSel.byNum[h.num] || {}).id).filter(Boolean);
+    const focusId = absorbed.some(h => (_holeSel.byNum[h.num] || {}).id === activeId) ? newCard.id : activeId;
+    reconcileSectionQueue(sec, newCard, removedIds, focusId);
     clearSecTextCache();
     saveState();
     renderCard();
@@ -2215,12 +2312,19 @@ async function saveAdd() {
     const maxHole = Math.max(0, ...baseCards.filter(c => c.section === sec).map(c => c.holeNum));
     const holeNum = maxHole + 1;
     const id = `${sec}_a${Date.now().toString().slice(-6)}`;
+    const draft = tagCard({ pageId: 'draft:' + id, id, section: sec, title: SECTION_TITLES[sec] || '',
+      heading, question: q, answer: a, holeNum, rank: '★', interval: 1, ef: 2.5, correct: 0, total: 0 });
+    const existing = baseCards.filter(c => c.section === sec && c.heading === heading);
+    const model = headingModel(existing.concat([draft]));
+    const canCanonicalize = model && model.ranges.length === existing.length + 1;
+    const template = canCanonicalize ? markerTemplate(model.plainText, model.ranges) : '';
+    const canonicalQ = canCanonicalize ? template.replace(`〔●${holeNum}〕`, '〔_〕') : q;
     const props = {
       '穴ID': { title: [{ text: { content: id } }] },
       '題番号': { rich_text: [{ text: { content: sec } }] },
       '題名': { rich_text: [{ text: { content: (SECTION_TITLES[sec] || '').slice(0, 500) } }] },
       '大見出し': { rich_text: [{ text: { content: heading.slice(0, 500) } }] },
-      '問題文': { rich_text: [{ text: { content: q.slice(0, 2000) } }] },
+      '問題文': { rich_text: [{ text: { content: canonicalQ.slice(0, 2000) } }] },
       '正解': { rich_text: [{ text: { content: a.slice(0, 500) } }] },
       '穴番号': { number: holeNum },
       '重要度': { select: { name: '★' } },
@@ -2233,16 +2337,39 @@ async function saveAdd() {
     const res = await notion('/v1/pages', { parent: { database_id: cfg.db }, properties: props });
     const newCard = tagCard({
       pageId: res.id, id, section: sec, title: SECTION_TITLES[sec] || '',
-      heading, question: q, answer: a, holeNum, rank: '★',
+      heading, question: normalizeQuestionLineBreaks(canonicalQ), answer: a, holeNum, rank: '★',
       interval: 1, ef: 2.5, correct: 0, total: 0,
     });
-    // 今日のキューに即時挿入（現在位置の直後）
+    const activeId = (cards[queueIdx] || {}).id || null;
     baseCards.push(newCard);
-    cards.splice(queueIdx + 1, 0, newCard);
+    const patches = [];
+    if (canCanonicalize) {
+      for (const lc of baseCards.filter(c => c.section === sec && c.heading === heading)) {
+        const fixed = normalizeQuestionLineBreaks(template.replace(`〔●${lc.holeNum}〕`, '〔_〕'));
+        if (lc.question !== fixed && lc.pageId !== newCard.pageId) patches.push({ card: lc, question: fixed });
+        lc.question = fixed;
+      }
+    }
+    reconcileSectionQueue(sec, newCard, [], activeId);
+    // 題完了パネルから追加した場合は、次の題より先に追加穴を出題する。
+    if (openAdd._fromSectionDone) {
+      const ni = cards.findIndex(c => c.id === newCard.id);
+      if (ni >= 0) queueIdx = ni;
+    }
     clearSecTextCache();
     saveState();
     closeAdd();
     toast('✓ 穴を追加しました（次に出題されます）', 'bg-emerald-600');
+    if (patches.length) {
+      queueBgSync(async () => {
+        for (const p of patches) {
+          if (!guardCardSource(p.card, '追加穴の連動反映')) throw new Error('安全保護により更新を中止しました');
+          await notion('/v1/pages/' + p.card.pageId, {
+            properties: { '問題文': { rich_text: [{ text: { content: p.question.slice(0, 2000) } }] } },
+          }, 'PATCH');
+        }
+      });
+    }
     if ($('quizBox').classList.contains('hidden')) { /* パネル表示中は何もしない */ }
     else renderCard();
   } catch (e) {
