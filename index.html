@@ -101,7 +101,6 @@
           <button onclick="openEdit()" class="text-[11px] px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 pressable">✏️</button>
         </div>
         <div class="flex items-center gap-2 mb-1.5 flex-wrap">
-          <button onclick="skipQuestion()" class="text-[11px] px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 pressable">⏩ この問題をスキップ</button>
           <button onclick="skipItem()" title="現在の⑴内の残りを飛ばして⑵へ進みます" class="text-[11px] px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 pressable">⏩ 次の項目へ</button>
           <button onclick="skipHeading()" class="text-[11px] px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 pressable">⏩ 次の見出し</button>
           <button onclick="skipSection()" class="text-[11px] px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 pressable">⏭ 次の題</button>
@@ -262,8 +261,9 @@
   <footer id="footerBar" class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[520px] z-40
                  bg-white/90 dark:bg-slate-900/90 backdrop-blur border-t border-slate-200 dark:border-slate-800
                  px-3 pt-2.5" style="padding-bottom: calc(10px + var(--safe-bottom));">
-    <div class="flex items-center justify-center mb-1.5">
-      <button id="undoBtn" onclick="undo()" class="text-[11px] px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 pressable mr-3" disabled>↩ 戻る</button>
+    <div class="flex items-center justify-between gap-2 mb-1.5">
+      <button id="undoBtn" onclick="undo()" class="text-[11px] px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 pressable" disabled>↩ 戻る</button>
+      <button onclick="skipQuestion()" class="text-[10px] px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 pressable">⏩ この問題をスキップ</button>
       <span class="text-[11px] text-slate-400">進捗 <span id="progressText">0/0</span></span>
     </div>
     <button id="revealBtn" onclick="reveal()" class="w-full py-3.5 bg-gradient-to-r from-sky-600 to-blue-700 text-white rounded-2xl font-bold text-base shadow-lg pressable">👀 正解を確認する</button>
@@ -360,7 +360,7 @@
 
 <script>
 'use strict';
-const APP_VER = 'v7';
+const APP_VER = 'v8';
 const EXAM_DATE = new Date('2027-08-03T00:00:00');
 // 見出し・段落の改行は残し、Notion由来の空行だけを整理する。
 function normalizeQuestionLineBreaks(value) {
