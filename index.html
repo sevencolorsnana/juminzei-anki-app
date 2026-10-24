@@ -360,7 +360,7 @@
 
 <script>
 'use strict';
-const APP_VER = 'v8';
+const APP_VER = 'v9';
 const EXAM_DATE = new Date('2027-08-03T00:00:00');
 // 見出し・段落の改行は残し、Notion由来の空行だけを整理する。
 function normalizeQuestionLineBreaks(value) {
@@ -992,7 +992,14 @@ function loadState() {
     mergeRank(baseCards);
     const byId = {}; baseCards.forEach(c => byId[c.id] = c);
     cards = hasCompactQueue ? s.cardIds.map(id => byId[id]).filter(Boolean) : (s.cards || []).map(c => byId[c.id] || c);
-    queueIdx = s.queueIdx; sessionResults = s.sessionResults || {};
+    queueIdx = Number.isInteger(s.queueIdx) && s.queueIdx >= 0 ? Math.min(s.queueIdx, cards.length) : 0;
+    // 完了済みキューを復元すると、Notionに未出題の問題が残っていても「完了」のままになる。
+    // 完了済みキャッシュは捨て、起動時に最新の出題対象を取り直す。
+    if (queueIdx >= cards.length) {
+      appStorage.removeItem('quizState');
+      return false;
+    }
+    sessionResults = s.sessionResults || {};
     clearSecTextCache();
     wrongCards = baseCards.filter(c => (s.wrongIds || []).includes(c.id));
     scoped = false; inWrongReview = false; showSecPanels = true; streak = s.streak || 0;
@@ -1119,6 +1126,8 @@ async function loadCards(force) {
       ef: prop(r.properties, '難易度係数', 'number') || 2.5,
       correct: prop(r.properties, '正答回数', 'number'),
       total: prop(r.properties, '出題回数', 'number'),
+      nextReview: r.properties['次回出題日'] && r.properties['次回出題日'].date
+        ? String(r.properties['次回出題日'].date.start || '').slice(0, 10) : '',
     });
     async function queryAll(filter, label) {
       let res = [], cursor, page = 0;
@@ -1134,18 +1143,17 @@ async function loadCards(force) {
       return res;
     }
 
-    // 出題する「題」を決める。題が対象になったら、その題の全穴を出題する。
+    // 1回の取得で締切判定と対象題の全穴抽出を行う。
+    // 以前は締切確認と全穴取得でDB全体をほぼ2回読み、問題数増加後に長時間停止していた。
     const sel = selectedSections();
-    let targetSections;
-    if (sel) {
-      // 範囲を選んでいる場合: その題を完全学習（締切に関係なく全穴）
-      targetSections = sel.slice();
-    } else {
-      // 全範囲: 今日が締切の穴を持つ「題」だけを対象にし、その題は全穴を出す
-      const due = await queryAll(
-        { property: '次回出題日', date: { on_or_before: todayStr() } }, '締切の穴を確認中...');
-      targetSections = [...new Set(due.map(r => prop(r.properties, '題番号', 'rich_text')))];
-    }
+    const fetchFilter = sel
+      ? { or: sel.map(s => ({ property: '題番号', rich_text: { equals: s } })) }
+      : null;
+    const results = await queryAll(fetchFilter, '問題を取得中...');
+    let all = results.map(mapCard);
+    const targetSections = sel ? sel.slice() : [...new Set(all
+      .filter(c => !c.nextReview || c.nextReview <= todayStr())
+      .map(c => c.section))];
     if (targetSections.length === 0) {
       cards = []; baseCards = [];
       queueIdx = 0; wrongCards = []; sessionResults = {}; streak = 0;
@@ -1155,10 +1163,7 @@ async function loadCards(force) {
       return;
     }
 
-    // 対象題の全穴を取得（題番号のORフィルタ）
-    const orFilter = { or: targetSections.map(s => ({ property: '題番号', rich_text: { equals: s } })) };
-    const results = await queryAll(orFilter, '題の全穴を取得中...');
-    let all = results.map(mapCard).filter(c => targetSections.includes(c.section));
+    all = all.filter(c => targetSections.includes(c.section));
     applyCardCatalog(all);
 
     const bySec = {};
@@ -1221,7 +1226,9 @@ function holePos(card, hcards) {
 }
 function orderHeadingCards(hcards) {
   if (hcards.length <= 1) return hcards.slice();
-  return hcards.slice().sort((a, b) => holePos(a, hcards) - holePos(b, hcards) ||
+  // 比較のたびに全文を再構築せず、各穴の位置は一度だけ計算する。
+  const positions = new Map(hcards.map(card => [card, holePos(card, hcards)]));
+  return hcards.slice().sort((a, b) => positions.get(a) - positions.get(b) ||
     (+a.holeNum || 0) - (+b.holeNum || 0) || String(a.id).localeCompare(String(b.id), 'ja'));
 }
 function orderSectionCards(scards) {
